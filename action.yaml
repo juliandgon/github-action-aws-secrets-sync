@@ -1,18 +1,20 @@
 # action.yaml
-name: "Blog Custom Github Action"
-description: "Call an API and get the result"
+name: "Github Secrets into AWS Secrets Manager"
+description: "Inject Secrets from a Github Repository into a AWS Secrets Manager's entry (as a json)"
 inputs:
-  secrets:
-    description: "Secrets config"
-    required: true
+  #### ENV variables used instead of Inputs
+  # secrets:
+  #  description: "Secrets config"
+  #  required: true
 outputs:
 runs:
   using: "docker"
   image: "Dockerfile"
-  args:
-    - ${{ inputs.github_secrets}}
-    - ${{ inputs.secrets_manager_arn}}
-    - ${{ inputs.filter_prefix}}
+  #### ENV variables used instead of args
+  #args:
+    #- ${{ inputs.github_secrets}}
+    #- ${{ inputs.secrets_manager_arn}}
+    #- ${{ inputs.filter_prefix}}
     # - ${{ inputs.aws-access-key-id}}
     # - ${{ inputs.aws-secret-access-key}}
     # - ${{ inputs.aws-region}}
