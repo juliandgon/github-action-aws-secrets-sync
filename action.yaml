@@ -7,13 +7,3 @@ branding:
 runs:
   using: "docker"
   image: "Dockerfile"
-  #### ENV variables used instead of args
-  #args:
-    #- ${{ inputs.github_secrets}}
-    #- ${{ inputs.secrets_manager_arn}}
-    #- ${{ inputs.filter_prefix}}
-    # - ${{ inputs.aws-access-key-id}}
-    # - ${{ inputs.aws-secret-access-key}}
-    # - ${{ inputs.aws-region}}
-
-    
