@@ -1,14 +1,27 @@
 on: [push]
 
 jobs:
-  custom_test:
+  local_test:
     runs-on: ubuntu-latest
-    name: We test it locally with act
+    name: Sync github secrets into AWS environment
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.INTERNAL_AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.INTERNAL_AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: ${{ secrets.INTERNAL_AWS_REGION }}
+      AWS_SESSION_TOKEN:  ${{ secrets.INTERNAL_AWS_SESSION_TOKEN }}
+      AWS_TGT_SECRETS_ARN:  ${{ secrets.INTERNAL_AWS_TGT_SECRETS_ARN }}
+      ENVIRONMENT: "STAGING" # or LIVE 
+      FILTER_PREFIX: "${{ env.ENVIRONMENT }}_" # OPTIONAL
+      SECRETS_CONFIG_FILE: secret_config.json
+      # DEBUG Local test
+      SCRIPT_DIR: "./github-action-aws-secrets-sync/"      
     steps:
-      - name: Get Pokemon name
-        uses: ./ # Uses an action in the root directory
-        id: pokemon
+      - name: Checkout
+        uses: actions/checkout@v2
         with:
-          pokemon_id: 150
-      - name: Get the pokemon
-        run: echo "${{ steps.pokemon.outputs.pokemon_name }} attack"
+          path: "github-action-aws-secrets-sync"
+      - run: echo "${{ toJson(secrets) }}" > ${{env.GITHUB_WORKSPACE}}/${{ env.SECRETS_CONFIG_FILE }}
+      - name: Sync github secrets into AWS Secrets Manager
+        uses: ./github-action-aws-secrets-sync # Uses an action in the root directory
+        #uses: ./
+        id: secretsyncer
