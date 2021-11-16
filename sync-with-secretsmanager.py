@@ -103,17 +103,19 @@ _dryRun=args.dryrun
 # Get the Json content from the file
 with open(secretsJsonFile) as f: 
     jsonData = yaml.load(f, yaml.SafeLoader) # Load thourhg YAML for safe loading
-    # filter content according to this scripts call
-    jsonDataFilter = {}
-    for key in jsonData:
-        matched = False
-        for filterMatch in filter_match:
-            if key.startswith(filterMatch):
-                matched=True
-                jsonDataFilter[key] = jsonData[key]
-                break
-        
-    jsonData = jsonDataFilter
+    
+    # If a prefix filter parameter was used, then only add the matching secrets for syncing
+    if filter_match:
+        jsonDataFilter = {}
+        for key in jsonData:
+            matched = False
+            for filterMatch in filter_match:
+                if key.startswith(filterMatch):
+                    matched=True
+                    jsonDataFilter[key] = jsonData[key]
+                    break         
+        jsonData = jsonDataFilter
+
     jsonString = json.dumps(jsonData)
 
 
