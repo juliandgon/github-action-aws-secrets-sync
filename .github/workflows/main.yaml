@@ -10,7 +10,7 @@ jobs:
       AWS_DEFAULT_REGION: ${{ secrets.INTERNAL_AWS_DEFAULT_REGION }}
       AWS_ACCESS_KEY_ID: ${{ secrets.INTERNAL_STAGING_AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.INTERNAL_STAGING_AWS_SECRET_ACCESS_KEY }}
-      # AWS_SESSION_TOKEN:  ${{ secrets.INTERNAL_STAGING_AWS_SESSION_TOKEN }}
+      AWS_SESSION_TOKEN:  ${{ secrets.INTERNAL_STAGING_AWS_SESSION_TOKEN }}
       AWS_TGT_SECRETS_ARN:  ${{ secrets.INTERNAL_STAGING_AWS_TGT_SECRETS_ARN }}
       FILTER_PREFIX: "STAGING_,COMMON_" # Only sync secrets that starts with this prefixes...
       SECRETS_CONFIG_FILE: secret_config.json
@@ -32,7 +32,7 @@ jobs:
       AWS_DEFAULT_REGION: ${{ secrets.INTERNAL_AWS_DEFAULT_REGION }}
       AWS_ACCESS_KEY_ID: ${{ secrets.INTERNAL_LIVE_AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.INTERNAL_LIVE_AWS_SECRET_ACCESS_KEY }}
-      # AWS_SESSION_TOKEN:  ${{ secrets.INTERNAL_LIVE_AWS_SESSION_TOKEN }}
+      AWS_SESSION_TOKEN:  ${{ secrets.INTERNAL_LIVE_AWS_SESSION_TOKEN }}
       AWS_TGT_SECRETS_ARN:  ${{ secrets.INTERNAL_LIVE_AWS_TGT_SECRETS_ARN }}
       FILTER_PREFIX: "LIVE_,COMMON_" # Only sync secrets that starts with this prefixes...
       SECRETS_CONFIG_FILE: secret_config.json
