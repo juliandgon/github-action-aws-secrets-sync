@@ -1,0 +1,50 @@
+name: Sync Github Secrets into AWS Secrets Manager
+
+on:
+  workflow_dispatch:
+
+jobs:
+  sync-staging-secrets:
+    runs-on: ubuntu-latest
+    env:
+      AWS_DEFAULT_REGION: ${{ secrets.INTERNAL_AWS_DEFAULT_REGION }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.INTERNAL_STAGING_AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.INTERNAL_STAGING_AWS_SECRET_ACCESS_KEY }}
+      # AWS_SESSION_TOKEN:  ${{ secrets.INTERNAL_STAGING_AWS_SESSION_TOKEN }}
+      AWS_TGT_SECRETS_ARN:  ${{ secrets.INTERNAL_STAGING_AWS_TGT_SECRETS_ARN }}
+      FILTER_PREFIX: "STAGING_,COMMON_" # Only sync secrets that starts with this prefixes...
+      SECRETS_CONFIG_FILE: secret_config.json
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Create secrets json file
+        run: echo "${{ toJson(secrets) }}" > ${{env.GITHUB_WORKSPACE}}/${{ env.SECRETS_CONFIG_FILE }}
+
+      - name: Sync github secrets into AWS Secrets Manager for the Staging Environment
+        uses: juliandgon/github-action-aws-secrets-sync@v1.0.0
+        id: secretsyncer
+
+      - name: Delete secrets file
+        run: rm ${{env.GITHUB_WORKSPACE}}/${{ env.SECRETS_CONFIG_FILE }}
+  sync-live-secrets:
+    runs-on: ubuntu-latest
+    env:
+      AWS_DEFAULT_REGION: ${{ secrets.INTERNAL_AWS_DEFAULT_REGION }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.INTERNAL_LIVE_AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.INTERNAL_LIVE_AWS_SECRET_ACCESS_KEY }}
+      # AWS_SESSION_TOKEN:  ${{ secrets.INTERNAL_LIVE_AWS_SESSION_TOKEN }}
+      AWS_TGT_SECRETS_ARN:  ${{ secrets.INTERNAL_LIVE_AWS_TGT_SECRETS_ARN }}
+      FILTER_PREFIX: "LIVE_,COMMON_" # Only sync secrets that starts with this prefixes...
+      SECRETS_CONFIG_FILE: secret_config.json
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Create secrets json file
+        run: echo "${{ toJson(secrets) }}" > ${{env.GITHUB_WORKSPACE}}/${{ env.SECRETS_CONFIG_FILE }}
+
+      - name: Sync github secrets into AWS Secrets Manager for the Live Environment
+        uses: juliandgon/github-action-aws-secrets-sync@v1.0.0
+        id: secretsyncer
+
+      - name: Delete secrets file
+        run: rm ${{env.GITHUB_WORKSPACE}}/${{ env.SECRETS_CONFIG_FILE }}
