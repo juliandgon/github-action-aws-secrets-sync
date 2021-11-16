@@ -21,7 +21,7 @@ jobs:
         run: echo "${{ toJson(secrets) }}" > ${{env.GITHUB_WORKSPACE}}/${{ env.SECRETS_CONFIG_FILE }}
 
       - name: Sync github secrets into AWS Secrets Manager for the Staging Environment
-        uses: juliandgon/github-action-aws-secrets-sync@v1.0.0
+        uses: juliandgon/github-action-aws-secrets-sync@v1.0.1
         id: secretsyncer
 
       - name: Delete secrets file
