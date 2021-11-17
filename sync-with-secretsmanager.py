@@ -90,13 +90,16 @@ setLogger()
 parser = argparse.ArgumentParser("sync-with-secretsmanager")
 parser.add_argument('--secret_arn',required=True, nargs='?', help='AWS secret manager ARN  help')
 parser.add_argument('--secret_json_file',required=True, nargs='?', help='secret json file help')
-parser.add_argument('--prefix_filter_match', type=str, nargs='?', help='Include only prefix filter for matching sequence')
+parser.add_argument('--include_filter_match', type=str, nargs='?', help='Include only filter for matching sequence')
+parser.add_argument('--exclude_filter_match', type=str, nargs='?', help='Exclude filter for matching sequence')
 parser.add_argument('--dryrun', nargs='?', help='Dry run')
 args = parser.parse_args()
 secretARN=args.secret_arn
 secretsJsonFile=args.secret_json_file
-filter_match=args.prefix_filter_match
-filter_match = [s.strip() for s in filter_match.split(",")]
+include_only_filter=args.include_filter_match
+include_only_filter = [s.strip() for s in include_only_filter.split(",")]
+exclude_filter=args.exclude_filter_match
+exclude_filter = [s.strip() for s in exclude_filter.split(",")]
 _dryRun=args.dryrun
 
 
@@ -104,16 +107,32 @@ _dryRun=args.dryrun
 with open(secretsJsonFile) as f: 
     jsonData = yaml.load(f, yaml.SafeLoader) # Load thourhg YAML for safe loading
     
-    # If a prefix filter parameter was used, then only add the matching secrets for syncing
-    if filter_match:
+    # If a include filter parameter was used, then only add the matching secrets for syncing
+    if include_only_filter:
         jsonDataFilter = {}
         for key in jsonData:
             matched = False
-            for filterMatch in filter_match:
-                if key.startswith(filterMatch):
+            for filterMatch in include_only_filter:
+                if filterMatch in key:
                     matched=True
                     jsonDataFilter[key] = jsonData[key]
                     break         
+        jsonData = jsonDataFilter
+
+        # If a prefix filter parameter was used, then only add the matching secrets for syncing
+    if exclude_filter:
+        jsonDataFilter = {}
+        for key in jsonData:
+            matched = False
+            for filterMatch in exclude_filter:
+                if filterMatch in key:
+                    matched=True
+                    break
+            if not matched:
+                matched=True
+                jsonDataFilter[key] = jsonData[key]
+                
+                        
         jsonData = jsonDataFilter
 
     jsonString = json.dumps(jsonData)
