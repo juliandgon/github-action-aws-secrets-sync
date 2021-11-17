@@ -1,6 +1,7 @@
-
 on:
   workflow_dispatch:
+
+# act --secret-file .github/workflows/.secrets -W .github/workflows/local_test_custom_action.yaml "workflow_dispatch"
 
 jobs:
   local_test:
@@ -22,7 +23,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           path: "github-action-aws-secrets-sync"
-      - run: echo "${{ toJson(secrets) }}" > ${{ env.SECRETS_CONFIG_FILE }}
+#      - run: echo "${{ toJson(secrets) }}" > ${{ env.SECRETS_CONFIG_FILE }}
       - name: Sync github secrets into AWS Secrets Manager
         uses: ./github-action-aws-secrets-sync # Uses an action in the root directory
         id: secretsyncer

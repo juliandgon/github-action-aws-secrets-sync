@@ -7,3 +7,21 @@ branding:
 runs:
   using: "docker"
   image: "Dockerfile"
+  pre-entrypoint: 'pre-entrypoint.sh "${{ toJson(secrets) }}" "secret_config.json"'
+  #post-entrypoint: 'rm secret_config.json'
+# runs:
+#   using: "composite"
+#   steps:
+#     - uses: actions/checkout@v2
+#     - name: Create secrets json file
+#       run: echo "${{ toJson(secrets) }}" > secrets_config.json
+#       shell: bash
+#     - name: Explain why this job ran
+#       uses: docker://# my image
+#       with:
+#         entrypoint:  # command executable that need to be run in a container
+#         args:  
+#     - name: Delete secrets file    
+#       run: rm secrets_config.json
+#       shell: bash
+    
