@@ -18,8 +18,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Create secrets json file
-        run: echo "${{ toJson(secrets) }}" > ${{ env.SECRETS_CONFIG_FILE }}
+      #- name: Create secrets json file
+      #   run: echo "${{ toJson(secrets) }}" > ${{ env.SECRETS_CONFIG_FILE }}
 
       - name: Sync github secrets into AWS Secrets Manager for the Staging Environment
         uses: juliandgon/github-action-aws-secrets-sync@stable
