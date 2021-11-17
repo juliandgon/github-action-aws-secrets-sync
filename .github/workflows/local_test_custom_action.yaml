@@ -1,7 +1,7 @@
 
 on:
   workflow_dispatch:
-
+# act --secret-file .github/workflows/.secrets -W ./.github/workflows/local_test_custom_action.yaml workflow_dispatch
 jobs:
   local_test:
     runs-on: ubuntu-latest
@@ -10,10 +10,9 @@ jobs:
       AWS_ACCESS_KEY_ID: ${{ secrets.INTERNAL_AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.INTERNAL_AWS_SECRET_ACCESS_KEY }}
       AWS_DEFAULT_REGION: ${{ secrets.INTERNAL_AWS_REGION }}
-      AWS_SESSION_TOKEN:  ${{ secrets.INTERNAL_AWS_SESSION_TOKEN }}
       AWS_TGT_SECRETS_ARN:  ${{ secrets.INTERNAL_AWS_TGT_SECRETS_ARN }}
-      ENVIRONMENT: "STAGING" # or LIVE 
-      EXCLUDE_FILTER: "INTERNAL_,github_token" # OPTIONAL
+      INCLUDE_FILTER: "STAGING_" # OPTIONAL
+      REMOVE_PATTERN: "STAGING_" # OPTIONAL
       SECRETS_CONFIG_FILE: secret_config.json
       # DEBUG Local test
       SCRIPT_DIR: "./github-action-aws-secrets-sync/"      
