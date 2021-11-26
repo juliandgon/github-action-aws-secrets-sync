@@ -84,28 +84,9 @@ def get_secret(secret_name):
     
     return json.loads(secret)
 
-def sync_secrets():
-    parser = argparse.ArgumentParser("sync-with-secretsmanager")
-    parser.add_argument('--secret_arn',required=True, nargs='?', help='AWS secret manager ARN  help')
-    parser.add_argument('--secret_json_file',required=True, nargs='?', help='secret json file help')
-    parser.add_argument('--include_filter_match', type=str, nargs='?', help='Include only filter for matching sequence')
-    parser.add_argument('--exclude_filter_match', type=str, nargs='?', help='Exclude filter for matching sequence')
-    parser.add_argument('--remove_pattern', type=str, nargs='?', help='Remove matching pattern in keys values')
-    parser.add_argument('--dryrun', nargs='?', help='Dry run')
-    args = parser.parse_args()
-    secretARN=args.secret_arn
-    secretsJsonFile=args.secret_json_file
-    include_filter=args.include_filter_match
-    include_filter = list(filter(None,[s.strip() for s in include_filter.split(",")]))
-    exclude_filter=args.exclude_filter_match
-    exclude_filter = list(filter(None, [s.strip() for s in exclude_filter.split(",")]))
-    remove_pattern=args.remove_pattern
-    remove_pattern = list(filter(None, [s.strip() for s in remove_pattern.split(",")]))
-    _dryRun=args.dryrun
-
-
+def sync_secrets(secret_arn,secret_file,include_filter,exclude_filter,remove_pattern,dry_run=False):
     # Get the Json content from the file with the secrets to be synced
-    with open(secretsJsonFile) as f:     
+    with open(secret_file) as f:     
         newValues = yaml.load(f, yaml.SafeLoader) # Load through YAML for safe loading
         
         
@@ -128,13 +109,13 @@ def sync_secrets():
                                 
             newValues = jsonDataFilter
 
-        oldValues = get_secret(secretARN)
+        oldValues = get_secret(secret_arn)
         oldValues.update(newValues)
         
         jsonString = json.dumps(oldValues)
 
 
-    result = update_secret(secret_arn=secretARN,jsonString=jsonString,DryRun=_dryRun)
+    result = update_secret(secret_arn=secret_arn,jsonString=jsonString,DryRun=dry_run)
     if result > 0:
         logging.error(f"ERROR. Could not update secret manager entry")
         exit(result)
@@ -144,5 +125,23 @@ def sync_secrets():
 
 if __name__=='__main__':
     setLogger()
-    rc = sync_secrets()
+    parser = argparse.ArgumentParser("sync-with-secretsmanager")
+    parser.add_argument('--secret_arn',required=True, nargs='?', help='AWS secret manager ARN  help')
+    parser.add_argument('--secret_json_file',required=True, nargs='?', help='secret json file help')
+    parser.add_argument('--include_filter_match', type=str, nargs='?', help='Include only filter for matching sequence')
+    parser.add_argument('--exclude_filter_match', type=str, nargs='?', help='Exclude filter for matching sequence')
+    parser.add_argument('--remove_pattern', type=str, nargs='?', help='Remove matching pattern in keys values')
+    parser.add_argument('--dryrun', nargs='?', help='Dry run')
+    args = parser.parse_args()
+    secretARN=args.secret_arn
+    secretsJsonFile=args.secret_json_file
+    include_filter=args.include_filter_match
+    include_filter = list(filter(None,[s.strip() for s in include_filter.split(",")]))
+    exclude_filter=args.exclude_filter_match
+    exclude_filter = list(filter(None, [s.strip() for s in exclude_filter.split(",")]))
+    remove_pattern=args.remove_pattern
+    remove_pattern = list(filter(None, [s.strip() for s in remove_pattern.split(",")]))
+    _dryRun=args.dryrun
+
+    rc = sync_secrets(secret_arn=secretARN,secret_file=secretsJsonFile,include_filter=include_filter,exclude_filter=exclude_filter,remove_pattern=remove_pattern,dry_run=_dryRun)
     exit(rc)
