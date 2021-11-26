@@ -84,75 +84,61 @@ def get_secret(secret_name):
     
     return json.loads(secret)
 
-
 setLogger()
 
-parser = argparse.ArgumentParser("sync-with-secretsmanager")
-parser.add_argument('--secret_arn',required=True, nargs='?', help='AWS secret manager ARN  help')
-parser.add_argument('--secret_json_file',required=True, nargs='?', help='secret json file help')
-parser.add_argument('--include_filter_match', type=str, nargs='?', help='Include only filter for matching sequence')
-parser.add_argument('--exclude_filter_match', type=str, nargs='?', help='Exclude filter for matching sequence')
-parser.add_argument('--remove_pattern', type=str, nargs='?', help='Remove matching pattern in keys values')
-parser.add_argument('--dryrun', nargs='?', help='Dry run')
-args = parser.parse_args()
-secretARN=args.secret_arn
-secretsJsonFile=args.secret_json_file
-include_only_filter=args.include_filter_match
-include_only_filter = list(filter(None,[s.strip() for s in include_only_filter.split(",")]))
-exclude_filter=args.exclude_filter_match
-exclude_filter = list(filter(None, [s.strip() for s in exclude_filter.split(",")]))
-remove_pattern=args.remove_pattern
-remove_pattern = list(filter(None, [s.strip() for s in remove_pattern.split(",")]))
-_dryRun=args.dryrun
+if __name__=='__main__':
+    parser = argparse.ArgumentParser("sync-with-secretsmanager")
+    parser.add_argument('--secret_arn',required=True, nargs='?', help='AWS secret manager ARN  help')
+    parser.add_argument('--secret_json_file',required=True, nargs='?', help='secret json file help')
+    parser.add_argument('--include_filter_match', type=str, nargs='?', help='Include only filter for matching sequence')
+    parser.add_argument('--exclude_filter_match', type=str, nargs='?', help='Exclude filter for matching sequence')
+    parser.add_argument('--remove_pattern', type=str, nargs='?', help='Remove matching pattern in keys values')
+    parser.add_argument('--dryrun', nargs='?', help='Dry run')
+    args = parser.parse_args()
+    secretARN=args.secret_arn
+    secretsJsonFile=args.secret_json_file
+    include_only_filter=args.include_filter_match
+    include_only_filter = list(filter(None,[s.strip() for s in include_only_filter.split(",")]))
+    exclude_filter=args.exclude_filter_match
+    exclude_filter = list(filter(None, [s.strip() for s in exclude_filter.split(",")]))
+    remove_pattern=args.remove_pattern
+    remove_pattern = list(filter(None, [s.strip() for s in remove_pattern.split(",")]))
+    _dryRun=args.dryrun
 
 
-# Get the Json content from the file
-with open(secretsJsonFile) as f: 
-    jsonData = yaml.load(f, yaml.SafeLoader) # Load thourhg YAML for safe loading
-    
-    # If a include filter parameter was used, then only add the matching secrets for syncing
-    if include_only_filter:
-        jsonDataFilter = {}
-        for key in jsonData:
-            matched = False
-            for filterMatch in include_only_filter:
-                if filterMatch in key:
-                    matched=True
-                    jsonDataFilter[key] = jsonData[key]
-                    break         
-        jsonData = jsonDataFilter
+    # Get the Json content from the file
+    with open(secretsJsonFile) as f:     
+        newValues = yaml.load(f, yaml.SafeLoader) # Load thourhg YAML for safe loading
+        
+        # If a include filter parameter was used, then only add the matching secrets for syncing
+        if include_only_filter:
+            check_value_in_list = lambda x: any([f in x for f in include_only_filter])
+            newValues = filter(check_value_in_list , newValues)
 
-    # If a prefix filter parameter was used, then only add the matching secrets for syncing
-    if exclude_filter:
-        jsonDataFilter = {}
-        for key in jsonData:
-            matched = False
-            for filterMatch in exclude_filter:
-                if filterMatch in key:
-                    matched=True
-                    break
-            if not matched:
-                jsonDataFilter[key] = jsonData[key]
-                        
-        jsonData = jsonDataFilter
+        # If a prefix filter parameter was used, then only add the matching secrets for syncing
+        if exclude_filter:
+            check_value_not_in_list = lambda x: not any([f in x for f in exclude_filter])
+            newValues = filter(check_value_not_in_list , newValues)
 
-    if remove_pattern:
-        jsonDataFilter = {}
-        for patternToRemove in remove_pattern:
-            for key in jsonData:
-                keyModified = key.replace(patternToRemove, '')
-                jsonDataFilter[keyModified] = jsonData[key]
-                            
-        jsonData = jsonDataFilter
+        if remove_pattern:
+            jsonDataFilter = {}
+            for patternToRemove in remove_pattern:
+                for key in newValues:
+                    keyModified = key.replace(patternToRemove, '')
+                    jsonDataFilter[keyModified] = newValues[key]
+                                
+            newValues = jsonDataFilter
 
-    jsonString = json.dumps(jsonData)
+        oldValues = get_secret(secretARN)
+        oldValues.update(newValues)
+        
+        jsonString = json.dumps(oldValues)
 
 
+    result = update_secret(secret_arn=secretARN,jsonString=jsonString,DryRun=_dryRun)
+    if result > 0:
+        logging.error(f"ERROR. Could not update secret manager entry")
+        exit(result)
 
-result = update_secret(secret_arn=secretARN,jsonString=jsonString,DryRun=_dryRun)
-if result > 0:
-    logging.error(f"ERROR. Could not update secret manager entry")
-    exit(result)
-
-logging.info(f"AWS Secret Manager entry synced succesfully!")
-exit(0)
+    logging.info(f"AWS Secret Manager entry synced succesfully!")
+    exit(0)
