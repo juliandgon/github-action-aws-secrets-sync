@@ -84,9 +84,7 @@ def get_secret(secret_name):
     
     return json.loads(secret)
 
-setLogger()
-
-if __name__=='__main__':
+def sync_secrets():
     parser = argparse.ArgumentParser("sync-with-secretsmanager")
     parser.add_argument('--secret_arn',required=True, nargs='?', help='AWS secret manager ARN  help')
     parser.add_argument('--secret_json_file',required=True, nargs='?', help='secret json file help')
@@ -97,8 +95,8 @@ if __name__=='__main__':
     args = parser.parse_args()
     secretARN=args.secret_arn
     secretsJsonFile=args.secret_json_file
-    include_only_filter=args.include_filter_match
-    include_only_filter = list(filter(None,[s.strip() for s in include_only_filter.split(",")]))
+    include_filter=args.include_filter_match
+    include_filter = list(filter(None,[s.strip() for s in include_filter.split(",")]))
     exclude_filter=args.exclude_filter_match
     exclude_filter = list(filter(None, [s.strip() for s in exclude_filter.split(",")]))
     remove_pattern=args.remove_pattern
@@ -106,20 +104,21 @@ if __name__=='__main__':
     _dryRun=args.dryrun
 
 
-    # Get the Json content from the file
+    # Get the Json content from the file with the secrets to be synced
     with open(secretsJsonFile) as f:     
-        newValues = yaml.load(f, yaml.SafeLoader) # Load thourhg YAML for safe loading
+        newValues = yaml.load(f, yaml.SafeLoader) # Load through YAML for safe loading
         
-        # If a include filter parameter was used, then only add the matching secrets for syncing
-        if include_only_filter:
-            check_value_in_list = lambda x: any([f in x for f in include_only_filter])
-            newValues = filter(check_value_in_list , newValues)
-
-        # If a prefix filter parameter was used, then only add the matching secrets for syncing
+        
+        # If a include filter parameter was used, only get the matching secrets for syncing
+        if include_filter:
+            check_value_in_list = lambda x: any([f in x[0] for f in include_filter])
+            newValues = dict(filter(check_value_in_list , newValues.items()))
+            
+        # If a exclude filter parameter was used, remove matching secrets for syncing
         if exclude_filter:
-            check_value_not_in_list = lambda x: not any([f in x for f in exclude_filter])
-            newValues = filter(check_value_not_in_list , newValues)
-
+            check_value_not_in_list = lambda x: not any([f in x[0] for f in exclude_filter])
+            newValues = dict(filter(check_value_not_in_list , newValues.items()))
+            
         if remove_pattern:
             jsonDataFilter = {}
             for patternToRemove in remove_pattern:
@@ -141,4 +140,9 @@ if __name__=='__main__':
         exit(result)
 
     logging.info(f"AWS Secret Manager entry synced succesfully!")
-    exit(0)
+    return 0
+
+if __name__=='__main__':
+    setLogger()
+    rc = sync_secrets()
+    exit(rc)

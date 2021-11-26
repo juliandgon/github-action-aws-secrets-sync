@@ -12,8 +12,8 @@ jobs:
       AWS_DEFAULT_REGION: ${{ secrets.INTERNAL_AWS_REGION }}
       AWS_TGT_SECRETS_ARN:  ${{ secrets.INTERNAL_AWS_TGT_SECRETS_ARN }}
       INCLUDE_FILTER: "STAGING_" # OPTIONAL
+      EXCLUDE_FILTER: "INTERNAL_" 
       REMOVE_PATTERN: "STAGING_" # OPTIONAL
-      EXCLUDE_FILTER: "INTERNAL_"
       SECRETS_CONFIG_FILE: secret_config.json
       # DEBUG Local test
       SCRIPT_DIR: "./github-action-aws-secrets-sync/"      
