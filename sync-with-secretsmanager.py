@@ -1,7 +1,7 @@
 
 import os
 import logging
-import json,yaml
+import json,yaml,re
 import argparse
 import traceback,sys
 from boto3 import Session
@@ -86,8 +86,15 @@ def get_secret(secret_name):
 
 def sync_secrets(secret_arn,secret_file,include_filter,exclude_filter,remove_pattern,dry_run=False):
     # Get the Json content from the file with the secrets to be synced
-    with open(secret_file) as f:     
-        newValues = yaml.load(f, yaml.SafeLoader) # Load through YAML for safe loading
+    with open(secret_file) as parsingFile:    
+        try: 
+            newValues = yaml.load(parsingFile, yaml.SafeLoader) # Load through YAML for safe loading
+        except yaml.parser.ParserError as error:
+            logging.info(f"failed to parse json, assuming an almost json... trying custom parsing")
+            with open(secret_file) as parsingFile:    
+                jsonfile = parsingFile.read()
+            jsonCorrected = re.sub(r"([\t\s]*)(.*):\s([^,\n]*)(,?)", r'\1"\2": "\3"\4', jsonfile)
+            newValues = json.loads(jsonCorrected) # Load through YAML for safe loading
         
         
         # If a include filter parameter was used, only get the matching secrets for syncing
