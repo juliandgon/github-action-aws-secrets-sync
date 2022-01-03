@@ -12,6 +12,7 @@ jobs:
       AWS_DEFAULT_REGION: ${{ secrets.INTERNAL_AWS_REGION }}
       AWS_TGT_SECRETS_ARN:  ${{ secrets.INTERNAL_AWS_TGT_SECRETS_ARN }}
       INCLUDE_FILTER: "STAGING_" # OPTIONAL
+      EXCLUDE_FILTER: "INTERNAL_" 
       REMOVE_PATTERN: "STAGING_" # OPTIONAL
       SECRETS_CONFIG_FILE: secret_config.json
       # DEBUG Local test
@@ -21,7 +22,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           path: "github-action-aws-secrets-sync"
-      - run: echo "${{ toJson(secrets) }}" > ${{ env.SECRETS_CONFIG_FILE }}
+      - run: echo '${{ toJson(secrets) }}' > ${{ env.SECRETS_CONFIG_FILE }}
       - name: Sync github secrets into AWS Secrets Manager
         uses: ./github-action-aws-secrets-sync # Uses an action in the root directory
         id: secretsyncer
